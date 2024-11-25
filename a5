@@ -158,7 +158,7 @@ def chips():
 
     while True:
         try:
-            chip_num = input("How many chips would you like to start?")
+            chip_num = int(input("How many chips would you like to start?"))
             break
         except ValueError:
             print(f'Please give a non-decimal number')
