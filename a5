@@ -7,6 +7,7 @@
 #
 
 import random
+from multiprocessing.managers import Value
 
 #===========#
 
@@ -154,7 +155,14 @@ tokens3 = 0
 
 def chips():
     global tokens, tokens1, tokens2, tokens3
-    chip_num = input("How many chips would you like to start?")
+
+    while True:
+        try:
+            chip_num = input("How many chips would you like to start?")
+            break
+        except ValueError:
+            print(f'Please give a non-decimal number')
+
     tokens += chip_num
     tokens = tokens1, tokens2, tokens3
 
@@ -221,31 +229,59 @@ def rules():
     else:
         print("Invalid input. Please type 'yes' or 'no'.")
 
-#===========#
-
-def game():
-    pass
-
 #===========
 
 def tiebreaker():
-    pass
+    while True:
+        user_action = input("Enter a choice (rock, paper, scissors): ")
+        possible_actions = ["rock", "paper", "scissors"]
+        computer_action = random.choice(possible_actions)
+        print(f"\nYou chose {user_action}, computer chose {computer_action}.\n")
+
+        if user_action == computer_action:
+            print(f"Both players selected {user_action}. It's a tie!")
+        elif user_action == "rock":
+            if computer_action == "scissors":
+                print("Rock smashes scissors! You win!")
+                break
+            else:
+                print("Paper covers rock! You lose.")
+                break
+
+        elif user_action == "paper":
+            if computer_action == "rock":
+                print("Paper covers rock! You win!")
+                break
+            else:
+                print("Scissors cuts paper! You lose.")
+                break
+
+        elif user_action == "scissors":
+            if computer_action == "paper":
+                print("Scissors cuts paper! You win!")
+                break
+            else:
+                print("Rock smashes scissors! You lose.")
+                break
 
 #===========#
 
-print(f'Hello! and welcome to...')
-print("""
-+------------+
-| PoCo LoCo! |
-+------------+
-""")
-name = input("What is your name?: ")
-print(f'Hello {name}, Let\'s play a game!')
-print(f'Our players are...')
-players()
-print(f'{player1}, {player2}, {player3}, and {name}!')
-print(f'Let\'s start the game!')
-rules()
-chips()
-#your version sucks >:(
+def game():
+    print(f'Hello! and welcome to...')
+    print("""
+    +------------+
+    | PoCo LoCo! |
+    +------------+
+    """)
+    name = input("What is your name?: ")
+    print(f'Hello {name}, Let\'s play a game!')
+    print(f'Our players are...')
+    players()
+    print(f'{player1}, {player2}, {player3}, and {name}!')
+    print(f'Let\'s start the game!')
+    rules()
+    chips()
 
+#===========#
+
+chips()
