@@ -60,7 +60,8 @@ score = 0
 risk = 0
 def roll_dice():
     global score, risk
-    score, risk = 0
+    score = 0
+    risk = 0
 
     rolls = [random.randint(1, 6) for j in range(3)]
 
@@ -115,24 +116,22 @@ def three_tries(tries):
 
 #===========#
 
-ran_player1 = {1:"Ariel", 2:"Barney", 3:"Christ", 4:"Dean", 5:"Elmo", 6:"Frank", 7:"Gena", 8:"Herman", 9:"Isaac"}
-ran_player2 = {1:"Jerry", 2:"Khris", 3:"Lindy", 4:"Mei", 5:"Norman", 6:"Oscar", 7:"Peter", 8:"Queen", 9:"Rachel"}
-ran_player3 = {1:"Steven", 2:"Thalia", 3:"Ulysses", 4:"Virgil", 5:"Walter", 6:"Xavier", 7:"Yuri", 8:"Zuko"}
+ran_player1 = {1:"Ajani", 2:"Bruvac", 3:"Christ", 4:"Dean", 5:"Elspeth", 6:"Frank", 7:"Gisa", 8:"Herman", 9:"Isaac"}
+ran_player2 = {1:"Jace", 2:"Karn", 3:"Lindy", 4:"Minsc", 5:"Nissa", 6:"Oscar", 7:"Peter", 8:"Queen", 9:"Rachel"}
+ran_player3 = {1:"Sorin", 2:"Thalia", 3:"Urza", 4:"Virgil", 5:"Walter", 6:"Xavier", 7:"Yarok", 8:"Zuko"}
 
-player1 = None
-player2 = None
-player3 = None
+player = {0:"user", 1:"player1", 2:"player2", 3:"player3"}
 
 def players():
     global player1, player2, player3
-    player1 = random.choice(list(ran_player1.values()))
-    player2 = random.choice(list(ran_player2.values()))
-    player3 = random.choice(list(ran_player3.values()))
+    player[1] = random.choice(list(ran_player1.values()))
+    player[2] = random.choice(list(ran_player2.values()))
+    player[3] = random.choice(list(ran_player3.values()))
 
 #===========#
 # function to be used in the game function
 def report(rounds):
-    round_text = f"Round {round}"
+    round_text = (f"Round {round}")
     border_len = len(round_text) + 4
 
     print("+" + "-" * (border_len - 2) + "+")
@@ -140,22 +139,17 @@ def report(rounds):
     print("+" + "-" * (border_len - 2) + "+")
 
     print(f"""
-    {name}: {tokens}
-    {player1}: {tokens1}
-    {player2}: {tokens2}
-    {player3}: {tokens3}
+    {player[0]}: {tokens["user"]}
+    {player[1]}: {tokens["bot1"]}
+    {player[2]}: {tokens["bot2"]}
+    {player[3]}: {tokens["bot3"]}
     """)
 
 #===========#
 
-tokens = 0
-tokens1 = 0
-tokens2 = 0
-tokens3 = 0
+tokens = {"user":0, "bot1":1, "bot2":2, "bot3":3}
 
 def chips():
-    global tokens, tokens1, tokens2, tokens3
-
     while True:
         try:
             chip_num = int(input("How many chips would you like to start?"))
@@ -163,8 +157,10 @@ def chips():
         except ValueError:
             print(f'Please give a non-decimal number')
 
-    tokens += chip_num
-    tokens = tokens1, tokens2, tokens3
+    tokens["user"] = chip_num
+    tokens["bot1"] = chip_num
+    tokens["bot2"] = chip_num
+    tokens["bot3"] = chip_num
 
 #===========#
 
@@ -229,7 +225,7 @@ def rules():
     else:
         print("Invalid input. Please type 'yes' or 'no'.")
 
-#===========
+#===========#
 
 def tiebreaker():
     while True:
@@ -274,12 +270,19 @@ def game():
     +------------+
     """)
     name = input("What is your name?: ")
+    player[0] = name
     print(f'Hello {name}, Let\'s play a game!')
     print(f'Our players are...')
     players()
-    print(f'{player1}, {player2}, {player3}, and {name}!')
+    print(f'{player[1]}, {player[2]}, {player[3]}, and {name}!')
     print(f'Let\'s start the game!')
     rules()
     chips()
+    roundnum = 0
+    report(roundnum)
+    print(f'It is {name}\'s turn')
+    three_tries(3)
 
 #===========#
+
+game()
