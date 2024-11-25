@@ -224,7 +224,12 @@ def rules():
 #===========#
 
 def game():
+    pass
 
+#===========
+
+def tiebreaker():
+    pass
 
 #===========#
 
