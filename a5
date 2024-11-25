@@ -168,10 +168,13 @@ def rules():
         PoCoLoCo! is a dice-rolling game played with chips. 
         Players take turns repeatedly rolling three dice, 
         and the first player to lose all their chips is the 
-        winner. PocoLoco is played in rounds. In each round, 
-        players take turns rolling three dice and try to get 
-        the highest score possible. The order of which player 
-        goes first, second, third and fourth are randomized.
+        winner. PocoLoco is played in rounds. 
+        
+        In each round, players take turns rolling three dice 
+        and try to get the highest score possible. The order 
+        of which player goes first, second, third and fourth
+        are randomized.
+        
         The first player has up to three chances to roll the 
         score they want, however, you can choose to stop early,
         and the next players can only roll as many times as 
@@ -198,10 +201,18 @@ def rules():
         8th: LoCo! (1, 2, 3)
         
         In the case of a tie, a tiebreaker will occur, in which a
-        game of roshambo will be played, where the winner of that
-        game will win the round.
+        game of rock-paper-scissors will be played, where the winner 
+        of that game will win the round.
         
+        The loser of the round will receive chips equal to the scores
+        as follows:
+        PoCo!: 4 chips
+        3-of-a-kind: 3 chips
+        LoCo!: 2 chips
+        Normal Score: 1 chip
         
+        Rounds will continue until a player has no chips left, in which
+        the game will end and that player will win.
         """)
 
     elif rule == "no":
