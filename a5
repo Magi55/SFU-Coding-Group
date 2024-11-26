@@ -105,21 +105,23 @@ def three_tries(tries, user):
 
         print(f'Attempts left: {attempts}')
         if user == "user":
-            retry = input('Would you like to try again?: (Yes/No)').strip().lower()
+            while True:
+                retry = input('Would you like to try again?: (Yes/No)').strip().lower()
 
-            if retry == "yes":
-                print("Re-rolling...")
-                time.sleep(3)
+                if retry == "yes":
+                    print("Re-rolling...")
+                    time.sleep(3)
+                    break
 
-            elif retry == "no":
-                print(f"State automatically saved after {tries - attempts} attempts")
-                print("Ending Turn")
-                input("\nPress [Enter] to continue\n")
-                rolls_left = tries - attempts
-                break
+                elif retry == "no":
+                    print(f"State automatically saved after {tries - attempts} attempts")
+                    print("Ending Turn")
+                    input("\nPress [Enter] to continue\n")
+                    rolls_left = tries - attempts
+                    return
 
-            else:
-                print("Invalid input. Please type 'yes' or 'no'.")
+                else:
+                    print("Invalid input. Please type 'yes' or 'no'.")
         else:
             if scores[user] >= 100:
                 print(f"State automatically saved after {tries - attempts} attempts")
@@ -361,7 +363,7 @@ def game():
                 else:
                     ai_turn(rolls_left if i > 0 else 3, current_player)
 
-            winner()
+
         elif tokens["user"] <= 0:
             print(f'Game Over!')
             time.sleep(1)
