@@ -6,7 +6,7 @@
 # SFU Email:hew5@sfu.ca
 #
 
-import random
+import random, time
 from multiprocessing.managers import Value
 
 #===========#
@@ -87,11 +87,12 @@ def roll_dice(user):
         risk[user] += 1
 
     print(f'Rolled {rolls}')
-    print(f'Total Points for {user}: {scores[user]}')#temporary, setting up winning and losing
+    print(f'Total Points: {scores[user]}')#temporary, setting up winning and losing
 #===========#
 rolls_left = 0
 
 def three_tries(tries, user):
+    global rolls_left
     attempts = tries
     while attempts > 0:
         roll_dice(user)
@@ -103,15 +104,17 @@ def three_tries(tries, user):
             break
 
         print(f'Attempts left: {attempts}')
-        if user == name:
+        if user == "user":
             retry = input('Would you like to try again?: (Yes/No)').strip().lower()
 
             if retry == "yes":
                 print("Re-rolling...")
+                time.sleep(3)
 
             elif retry == "no":
                 print(f"State automatically saved after {tries - attempts} attempts")
                 print("Ending Turn")
+                input("\nPress [Enter] to continue\n")
                 rolls_left = tries - attempts
                 break
 
@@ -121,10 +124,12 @@ def three_tries(tries, user):
             if scores[user] >= 100:
                 print(f"State automatically saved after {tries - attempts} attempts")
                 print("Ending Turn")
+                input("\nPress [Enter] to continue\n")
                 rolls_left = tries - attempts
                 break
             else:
                 print("Re-rolling...")
+                time.sleep(3)
 #===========#
 
 def ai_turn(tries, bot_name):
@@ -158,12 +163,15 @@ def report(rounds):
     print(f'| {round_text} |')
     print("+" + "-" * (border_len - 2) + "+")
 
+    time.sleep(2)
+
     print(f"""
     {player[0]}: {tokens["user"]}
     {player[1]}: {tokens["bot1"]}
     {player[2]}: {tokens["bot2"]}
     {player[3]}: {tokens["bot3"]}
     """)
+    input("\nPress [Enter] to continue\n")
 
 #===========#
 
@@ -201,18 +209,30 @@ def rules():
         PoCoLoCo! is a dice-rolling game played with chips. 
         Players take turns repeatedly rolling three dice, 
         and the first player to lose all their chips is the 
-        winner. PocoLoco is played in rounds. 
-        
+        winner. PocoLoco is played in rounds.
+        """)
+
+        time.sleep(3)
+
+        print("""
         In each round, players take turns rolling three dice 
         and try to get the highest score possible. The order 
         of which player goes first, second, third and fourth
         are randomized.
-        
+        """)
+
+        time.sleep(3)
+
+        print("""
         The first player has up to three chances to roll the 
         score they want, however, you can choose to stop early,
         and the next players can only roll as many times as 
         previous player or less. 
-        
+        """)
+
+        time.sleep(3)
+
+        print("""
         The scores of the dice are as follows:
         1 = 100 points
         2 = 2 points
@@ -220,7 +240,11 @@ def rules():
         4 = 4 points
         5 = 5 points
         6 = 60 points
-        
+        """)
+
+        time.sleep(3)
+
+        print("""
         There is also special scores that are above normal scores.
         These scores, which rank from highest to lowest, are as
         follows: 
@@ -232,18 +256,28 @@ def rules():
         6th: (2, 2, 2)
         7th: (1, 1, 1)
         8th: LoCo! (1, 2, 3)
-        
+        """)
+
+        time.sleep(3)
+
+        print("""        
         In the case of a tie, a tiebreaker will occur, in which a
         game of rock-paper-scissors will be played, where the winner 
         of that game will win the round.
-        
+        """)
+
+        print("""        
         The loser of the round will receive chips equal to the scores
         as follows:
         PoCo!: 4 chips
         3-of-a-kind: 3 chips
         LoCo!: 2 chips
         Normal Score: 1 chip
-        
+        """)
+
+        time.sleep(3)
+
+        print("""
         Rounds will continue until a player has no chips left, in which
         the game will end and that player will win.
         """)
@@ -288,40 +322,60 @@ def tiebreaker():
 
 #===========#
 
-name = input("What is your name?: ")
-player[0] = name
-print(f'Hello {name}, Let\'s play a game!')
-print(f'Hello! and welcome to...')
-print("""
-+------------+
-| PoCo LoCo! |
-+------------+
-""")
-print(f'Our players are...')
-players()
-print(f'{player[1]}, {player[2]}, {player[3]}, and {name}!')
-print(f'Let\'s start the game!')
-rules()
-chips()
-roundnum = 0
-user = player[0]
-bot1 = player[1]
-bot2 = player[2]
-bot3 = player[3]
-while True:
-    if tokens != 0:
-        random.shuffle(player)
-        roundnum += 1
-        report(roundnum)
-        print(f'It is {player[0]}\'s turn')
-        three_tries(3, 0)
-        print(f'It is {player[1]}\'s turn')
-        three_tries(rolls_left, 1)
-        print(f'It is {player[2]}\'s turn')
-        three_tries(rolls_left, 2)
-        print(f'It is {player[3]}\'s turn')
-        three_tries(rolls_left, 3)
-        winner()
+def game():
+    name = ''
+    while name == '':
+        name = input("What is your name?: ")
+    player[0] = name
+    print(f'Hello {name}, Let\'s play a game!')
+    print(f'Hello! and welcome to...')
+    time.sleep(2)
+    print("""
+    +------------+
+    | PoCo LoCo! |
+    +------------+
+    """)
+    input("\nPress [Enter] to continue\n")
+    print(f'Our players are...')
+    time.sleep(2)
+    players()
+    print(f'{player[1]}, {player[2]}, {player[3]}, and {name}!')
+    print(f'Let\'s start the game!')
+    rules()
+    chips()
+    roundnum = 0
+    while True:
+        if tokens != 0:
+            random.shuffle(player)
+            player["user"] = name
+            roundnum += 1
+            report(roundnum)
 
+            for i in range(4):
+                current_player = player[i]
+                print(f'It is {current_player}\' turn')
+                time.sleep(2)
+
+                if current_player == name:
+                    three_tries(rolls_left if i > 0 else 3, "user")
+                else:
+                    ai_turn(rolls_left if i > 0 else 3, current_player)
+
+            winner()
+        elif tokens["user"] <= 0:
+            print(f'Game Over!')
+            time.sleep(1)
+            print(f'You Win!')
+            time.sleep(1)
+            print(f'''
+            Final Score:
+            {player[0]}: {tokens["user"]}
+            {player[1]}: {tokens["bot1"]}
+            {player[2]}: {tokens["bot2"]}
+            {player[3]}: {tokens["bot3"]}
+            ''')
+            time.sleep(1)
+            print(f'Good Game!')
 #===========#
 
+game()
