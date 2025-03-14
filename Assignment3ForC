@@ -30,13 +30,15 @@ Contact *editContact(Contact **contacts, int index );
 
 int main()
 {
+	int choice = 0;
+
+	menu(choice);
+
 	
 }
 
-void menu()
+void menu(int choice)
 {
-	int choice = 0;
-
 	printf("Address Book Menu \n\
 	1. Append Contact \n\
 	2. Insert Contact in Alphabetical Order \n\
@@ -51,14 +53,19 @@ void menu()
 	11. Merge Contacts from File \n\
 	12. Exit \n\
 	Choose an option: ");
-	
-	scanf("%d", &choice);
-	if(13 <= choice || choice <= 0)
+
+	while(1)
 	{
-		printf("Error: option not available. Try again: ")
+		scanf("%d", &choice);
+		if(0 <= choice <= 13)
+		{
+			break;
+		}
+		else
+		{
+			printf("Error: option not available. Try again: ");
+		}
 	}
-	
-	
 }
 
 void menu5()
