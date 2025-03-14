@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+typedef struct Contact
+{
+char *firstName; 
+char *familyName; 
+long long phoneNum;
+char *address; 
+int age; 
+} Contact; 
+
+void menu();
+void menu5();
+int countContacts(Contact **contacts); 
+Contact *readNewContact(); 
+Contact **appendContact(Contact **contacts, Contact *newContact); 
+Contact **insertContactAlphabetical(Contact **contacts, Contact *newContact);
+Contact **removeContactByIndex(Contact **contacts );
+int removeContactByFullName(Contact ***contacts); 
+void listContacts(Contact **contacts); 
+void saveContactsToFile(Contact **contacts, char *filename); 
+void printContactsToFile(Contact **contacts, char *filename); 
+Contact **loadContactsFromFile(char *filename); 
+Contact **mergeContactsFromFile(Contact **contacts, char *filename); 
+Contact **appendContactsFromFile(Contact **contacts, char *filename); 
+Contact *editContact(Contact **contacts, int index );
+
+
+int main()
+{
+	
+}
+
+void menu()
+{
+	int choice = 0;
+
+	printf("Address Book Menu \n\
+	1. Append Contact \n\
+	2. Insert Contact in Alphabetical Order \n\
+	3. Remove Contact by Index \n\
+	4. Remove Contact by Full Name \n\
+	5. Find and Edit Contact \n\
+	6. List Contacts \n\
+	7. Print Contacts to File with the format of an input file \n\
+	8. Print Contacts to File (Human Readable) \n\
+	9. Load Contacts from File Replacing Existing Contacts \n\
+	10. Append Contacts from File \n\
+	11. Merge Contacts from File \n\
+	12. Exit \n\
+	Choose an option: ");
+	
+	scanf("%d", &choice);
+	if(13 <= choice || choice <= 0)
+	{
+		printf("Error: option not available. Try again: ")
+	}
+	
+	
+}
+
+void menu5()
+{
+	int choice = 0;
+
+	printf("1. Edit First Name \n\
+	2. Edit Last Name \n\
+	3. Edit Address \n\
+	4. Edit Phone Number \n\
+	5. Edit Age \n\
+	6. Cancel \n\");
+
+	scanf("%d", &choice);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
