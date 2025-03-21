@@ -26,6 +26,7 @@ Contact **loadContactsFromFile(char *filename);
 Contact **mergeContactsFromFile(Contact **contacts, char *filename);
 Contact **appendContactsFromFile(Contact **contacts, char *filename);
 Contact *editContact(Contact **contacts, int index);
+Contact *readContactFile(FILE *file)
 
 
 
@@ -186,19 +187,25 @@ int countContacts(Contact **contacts)
 {
 	int count = 0;
 	
-	for(int i = 0; i < sizeof(contacts); i++)
+	if (contacts == NULL) 
 	{
-		if(NULL != contacts[i])
-		{
-			count++;
-		}
+	return 0;
 	}
-	
-	return count;
+
+  while (contacts[count] != NULL) 
+	{
+  	count++;
+  }
+  return count;
 }
 
 Contact *readNewContact() 
 {
+	int ageTemp = 0;
+	int ageTries = 0;
+	long long phoneTemp = 0;
+	int phoneTries = 0;
+
 	Contact *newContact = (Contact *)malloc(sizeof(Contact));
 
 	newContact->firstname = (char*)malloc(100 * sizeof(char));
@@ -214,12 +221,62 @@ Contact *readNewContact()
 	printf("Enter address: ");
 	scanf("%s", newContact->address);
 
-	while
-	printf("Enter 10-digit phone number that must not start with 0: ");
-	scanf("%lld", &newContact->phoneNum);
+	while(1)
+	{
+		printf("Enter 10-digit phone number that must not start with 0: ");
+		scanf("%lld", &newContact->phoneTemp);
+	
+		if(phoneTemp >= 1000000000LL && phoneTemp <= 9999999999LL)
+		{
+			phoneTemp == phoneNum;
+			break;
+		}
 
-	printf("Enter age: ");
-	scanf("%d", &newContact->age);
+		else()
+		{
+			if(5 == phoneTries)
+			{
+				printf("Error: Could not read a valid phone number");
+				phoneTemp == 0000000000
+				newContact->phoneNum = phoneTemp;
+				break;
+			}
+			
+			
+			printf("Error: Invalid phone number. Try again:");
+			phoneTries += 1;
+			
+		}
+
+	}
+
+	while(1)
+	{
+		printf("Enter age: ");
+		scanf("%d", &newContact->age);
+	
+		if(tempAge <= 151 && 0 <= tempAge)
+		{
+			ageTemp == age;
+			break;
+		}
+
+		else()
+		{
+			if(5 == ageTries)
+			{
+				printf("Error: Could not read a valid age");
+				tempAge == 0
+				newContact->age = ageTemp;
+				break;
+			}
+			
+			printf("Error: Invalid age. Try again: ");
+			ageTries += 1;
+			
+		}
+
+	}
 
 	return newContact;
 	
@@ -301,6 +358,11 @@ Contact *editContact(Contact **contacts, int index)
 	
 }
 
+Contact *readContactFile(FILE *file)
+{
+	readline
+	fscanf("%s%s%s%lld%d", &currentFirst->newcontact, &currentFamily->n
+}
 
 
 
