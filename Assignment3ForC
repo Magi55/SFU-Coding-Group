@@ -12,6 +12,7 @@ char *address;
 int age; 
 } Contact; 
 
+void menu5();
 int countContacts(Contact **contacts);
 Contact *readNewContact();
 Contact **appendContact(Contact **contacts, Contact *newContact);
@@ -25,7 +26,7 @@ Contact **loadContactsFromFile(char *filename);
 Contact **mergeContactsFromFile(Contact **contacts, char *filename);
 Contact **appendContactsFromFile(Contact **contacts, char *filename);
 Contact *editContact(Contact **contacts, int index );
-void menu5();
+
 
 
 int main()
@@ -54,6 +55,8 @@ int main()
 		{
 			if(1 == choice) /*Append Contact*/
 			{
+				printf("Adding a constact interactively: ");
+
 				appendContact();
 			}
 
@@ -303,6 +306,7 @@ Contact *readNewContact()
     // Read age with validation
     int ageTries = 0;
     newContact->age = 0;
+
     while(ageTries < 5) 
 	{
         printf("Enter the age: ");
@@ -349,13 +353,55 @@ Contact **appendContact(Contact **contacts, Contact *newContact)
 	return newContacts;
 }
 
+Contact **insertContactAlphabetical(Contact **contacts, Contact *newContact)
+{
+	
+}
 
+Contact **removeContactByIndex(Contact **contacts )
+{
+	
+}
 
+int removeContactByFullName(Contact ***contacts)
+{
+	
+}
 
+void listContacts(Contact **contacts)
+{
+	
+}
 
+void saveContactsToFile(Contact **contacts, char *filename)
+{
+	
+}
 
+void printContactsToFile(Contact **contacts, char *filename)
+{
+	
+}
 
+Contact **loadContactsFromFile(char *filename)
+{
+	
+}
 
+Contact **mergeContactsFromFile(Contact **contacts, char *filename)
+{
+	
+}
+
+Contact **appendContactsFromFile(Contact **contacts, char *filename)
+{
+	
+}
+
+Contact *editContact(Contact **contacts, int index )
+{
+	
+}
 
 
 
