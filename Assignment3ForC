@@ -66,8 +66,8 @@ Choose an option: ");
 				printf("Adding a constact interactively: \n");
 
 				Contact *newContact = readNewContact();
-                contacts = appendContact(contacts, newContact);
-                printf("\n");
+                		contacts = appendContact(contacts, newContact);
+                		printf("\n");
 			}
 
 			else if(2 == choice) /*Insert Contact in Alphabetical Order*/
