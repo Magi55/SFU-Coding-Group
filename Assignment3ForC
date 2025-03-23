@@ -26,7 +26,7 @@ void printContactsToFile(Contact **contacts, char *filename);
 Contact **loadContactsFromFile(char *filename);
 Contact **mergeContactsFromFile(Contact **contacts, char *filename);
 Contact **appendContactsFromFile(Contact **contacts, char *filename);
-Contact *editContact(Contact **contacts, int index);
+Contact *editContact(Contact **contacts,);
 Contact *readContactFile(FILE *file)
 
 
