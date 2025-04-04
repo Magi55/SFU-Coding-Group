@@ -61,7 +61,7 @@ void printPattern(int startColNum, const int numRows)
 {
     if(startColNum < 1) 
     {
-        return;
+        return 0;
     }
 
     printARow(startColNum, numRows);
