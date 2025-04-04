@@ -56,17 +56,12 @@ int main()
 
                 else
                 {
-                    int firstChar = fgetc(file);
+                    double firstChar = 0;
 
-                    if(firstChar == EOF) 
+                    if(fscanf(filename, "%lf", &firstChar) != 1)
                     {
                         printf("ERROR: input file is empty");
                         return 0;
-                    }
-
-                    else
-                    {
-                        ungetc(firstChar, file);
                     }
 
                     myMeasurements = malloc(numMeas * sizeof(double));
