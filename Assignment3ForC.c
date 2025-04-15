@@ -927,7 +927,7 @@ Contact **loadContactsFromFile(Contact **addressBook, char *filename)
         }
 
         /*Read address*/
-        if(!fgets(address, sizeof(address), file) == NULL) 
+        if(!fgets(address, sizeof(address), file))
         {
             printf("Error: Memory allocation error, Contact %d in loadContactsFromFile\n", i);
             free(newBook[i]->firstName);
@@ -1117,6 +1117,7 @@ Contact **mergeContactsFromFile(Contact **contacts, char *filename)
         return contacts;
     }
 
+    int fileCount;
     if(fscanf(file, "%d", &fileCount) != 1) 
     {
         fclose(file);
