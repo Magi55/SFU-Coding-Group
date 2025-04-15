@@ -1,686 +1,1219 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
-typedef struct Contact {
-    char *firstName;
-    char *familyName;
-    long long phoneNum;
-    char *address;
-    int age;
-} Contact;
+typedef struct Contact
+{
+char *firstName; 
+char *familyName;
+long long phoneNum;
+char *address; 
+int age; 
+} Contact; 
 
-int countContacts(Contact **contacts) {
-    if (contacts == NULL) return 0;
+void menu();
+int countContacts(Contact **contacts);
+void freeAllContacts(Contact **contacts);
+Contact *readNewContact();
+Contact **appendContact(Contact **contacts, Contact *newContact);
+Contact **insertContactAlphabetical(Contact **contacts, Contact *newContact);
+Contact **removeContactByIndex(Contact **contacts);
+int removeContactByFullName(Contact ***contacts);
+Contact **editContact(Contact **contacts);
+void listContacts(Contact **contacts);
+void saveContactsToFile(Contact **contacts, char *filename);
+void printContactsToFile(Contact **contacts, char *filename);
+void freeFileContacts(Contact **contacts, FILE *file);
+Contact **loadContactsFromFile(Contact **addressBook, char *filename);
+Contact **appendContactsFromFile(Contact **contacts, char *filename);
+Contact **mergeContactsFromFile(Contact **contacts, char *filename);
+
+int main()
+{
+    menu();
+}
+
+void menu()
+{
+    int choice = 0;
+	Contact **contacts = NULL;
+	
+	while(1)
+	{
+	    printf("Address Book Menu \n\
+1.  Append Contact \n\
+2.  Insert Contact in Alphabetical Order \n\
+3.  Remove Contact by Index \n\
+4.  Remove Contact by Full Name \n\
+5.  Find and Edit Contact \n\
+6.  List Contacts \n\
+7.  Print Contacts to File with the format of an input file \n\
+8.  Print Contacts to File (Human Readable) \n\
+9.  Load Contacts from File Replacing Existing Contacts \n\
+10. Append Contacts from File \n\
+11. Merge Contacts from File \n\
+12. Exit \n\
+Choose an option: ");
+	    
+		scanf("%d", &choice);
+
+		switch (choice)
+        {
+        case 1: /* Append Contact */
+        {
+            printf("Adding a contact interactively: \n");
+            Contact *newContact = readNewContact();
+            contacts = appendContact(contacts, newContact);
+            printf("\n");
+            break;
+        }
+
+        case 2: /* Insert Contact in Alphabetical Order */
+        {
+            Contact *newContact = readNewContact();
+            if (newContact)
+            {
+                contacts = insertContactAlphabetical(contacts, newContact);
+            }
+            printf("\n");
+            break;
+        }
+
+        case 3: /* Remove Contact by Index */
+            contacts = removeContactByIndex(contacts);
+            printf("\n");
+            break;
+
+        case 4: /* Remove Contact by Full Name */
+        {
+            int result = removeContactByFullName(&contacts);
+            printf("\n");
+            break;
+        }
+
+        case 5: /* Find and Edit Contact */
+            contacts = editContact(contacts);
+            printf("\n");
+            break;
+
+        case 6: /* List Contacts */
+            listContacts(contacts);
+            printf("\n");
+            break;
+
+        case 7: /* Print Contacts to File with the format of an input file */
+        {
+            char filename[256];
+            printf("Enter output filename: ");
+            scanf("%255s", filename);
+            saveContactsToFile(contacts, filename);
+            printf("\n");
+            break;
+        }
+
+        case 8: /* Print Contacts to File (Human Readable) */
+        {
+            char filename[256];
+            printf("Enter output filename: ");
+            scanf("%255s", filename);
+            printContactsToFile(contacts, filename);
+            printf("\n");
+            break;
+        }
+
+        case 9: /* Load Contacts from File Replacing Existing Contacts */
+        {
+            char filename[256];
+            printf("Enter filename to load: ");
+            scanf("%255s", filename);
+            contacts = loadContactsFromFile(contacts, filename);
+            printf("\n");
+            break;
+        }
+
+        case 10: /* Append Contacts from File */
+        {
+            char filename[256];
+            printf("Enter filename to append: ");
+            scanf("%255s", filename);
+            contacts = appendContactsFromFile(contacts, filename);
+            printf("\n");
+            break;
+        }
+
+        case 11: /* Merge Contacts from File */
+        {
+            char filename[256];
+            printf("Enter filename to merge: ");
+            scanf("%255s", filename);
+            contacts = mergeContactsFromFile(contacts, filename);
+            printf("\n");
+            break;
+        }
+
+        case 12: /* Exit */
+            freeAllContacts(contacts);
+
+            printf("Exiting program. Goodbye!\n");
+
+            exit(0);
+
+        default:
+            printf("Error: option not available. Try again.\n");
+            break;
+        }
+	}
+}
+
+int countContacts(Contact **contacts)
+{
     int count = 0;
-    while (contacts[count] != NULL) {
+    
+    if(!contacts) 
+    {
+        return 0;
+    }
+
+    while(contacts[count] != NULL) 
+    {
         count++;
     }
     return count;
 }
 
-void trimNewline(char *str) {
-    size_t len = strlen(str);
-    if (len > 0 && str[len - 1] == '\n') {
-        str[len - 1] = '\0';
-    }
-}
-
-Contact *readNewContact() {
-    Contact *newContact = malloc(sizeof(Contact));
-    if (newContact == NULL) {
-        printf("Error: Memory allocation failed for Contact in readNewContact\n");
-        return NULL;
-    }
-    newContact->firstName = NULL;
-    newContact->familyName = NULL;
-    newContact->address = NULL;
-    newContact->phoneNum = 0;
-    newContact->age = 0;
-
-    char buffer[256];
-
-    // Read first name
-    printf("Enter the first name:\n");
-    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-        free(newContact);
-        return NULL;
-    }
-    trimNewline(buffer);
-    newContact->firstName = strdup(buffer);
-    if (newContact->firstName == NULL) {
-        printf("Error: unable to allocate memory for the first name string\n");
-        free(newContact);
-        return NULL;
-    }
-
-    // Read family name
-    printf("Enter the family name:\n");
-    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-        free(newContact->firstName);
-        free(newContact);
-        return NULL;
-    }
-    trimNewline(buffer);
-    newContact->familyName = strdup(buffer);
-    if (newContact->familyName == NULL) {
-        printf("Error: unable to allocate memory for the family name string\n");
-        free(newContact->firstName);
-        free(newContact);
-        return NULL;
-    }
-
-    // Read address
-    printf("Enter the address:\n");
-    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-        free(newContact->firstName);
-        free(newContact->familyName);
-        free(newContact);
-        return NULL;
-    }
-    trimNewline(buffer);
-    newContact->address = strdup(buffer);
-    if (newContact->address == NULL) {
-        printf("Error: unable to allocate memory for the address string\n");
-        free(newContact->firstName);
-        free(newContact->familyName);
-        free(newContact);
-        return NULL;
-    }
-
-    // Read phone number
-    int attempts = 5;
-    char phoneStr[256];
-    long long phoneNum = 0;
-    while (attempts > 0) {
-        printf("Enter 10-digit phone number that must not start with 0:\n");
-        if (fgets(phoneStr, sizeof(phoneStr), stdin) == NULL) {
-            break;
-        }
-        trimNewline(phoneStr);
-        size_t len = strlen(phoneStr);
-        if (len != 10 || phoneStr[0] == '0') {
-            printf("Error: Invalid phone number. Try again:\n");
-            attempts--;
-            continue;
-        }
-        int valid = 1;
-        for (int i = 0; i < 10; i++) {
-            if (!isdigit(phoneStr[i])) {
-                valid = 0;
-                break;
-            }
-        }
-        if (!valid) {
-            printf("Error: Invalid phone number. Try again:\n");
-            attempts--;
-            continue;
-        }
-        phoneNum = atoll(phoneStr);
-        break;
-    }
-    if (attempts == 0) {
-        printf("Error: Could not read a valid phone number\n");
-        phoneNum = 0;
-    }
-    newContact->phoneNum = phoneNum;
-
-    // Read age
-    attempts = 5;
-    int age = 0;
-    while (attempts > 0) {
-        printf("Enter the age:\n");
-        if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-            break;
-        }
-        trimNewline(buffer);
-        if (sscanf(buffer, "%d", &age) != 1) {
-            printf("Error: Invalid age. Try again:\n");
-            attempts--;
-            continue;
-        }
-        if (age < 1 || age > 150) {
-            printf("Error: Invalid age. Try again:\n");
-            attempts--;
-            continue;
-        }
-        break;
-    }
-    if (attempts == 0) {
-        printf("Error: Could not read a valid age\n");
-        age = 0;
-    }
-    newContact->age = age;
-
-    return newContact;
-}
-
-Contact **appendContact(Contact **contacts, Contact *newContact) {
-    if (contacts == NULL || newContact == NULL) {
-        return contacts;
-    }
-    int count = countContacts(contacts);
-    Contact **newContacts = realloc(contacts, (count + 2) * sizeof(Contact*));
-    if (newContacts == NULL) {
-        printf("Memory reallocation error in appendContact\n");
-        return contacts;
-    }
-    newContacts[count] = newContact;
-    newContacts[count + 1] = NULL;
-    printf("Contact appended successfully by appendContact\n");
-    return newContacts;
-}
-
-int compareContacts(const void *a, const void *b) {
-    Contact *contactA = *(Contact **)a;
-    Contact *contactB = *(Contact **)b;
-    int familyCmp = strcmp(contactA->familyName, contactB->familyName);
-    if (familyCmp != 0) {
-        return familyCmp;
-    }
-    return strcmp(contactA->firstName, contactB->firstName);
-}
-
-Contact **insertContactAlphabetical(Contact **contacts, Contact *newContact) {
-    if (contacts == NULL || newContact == NULL) {
-        return contacts;
-    }
-    int count = countContacts(contacts);
-    int insertIndex = 0;
-    while (insertIndex < count && compareContacts(&contacts[insertIndex], &newContact) < 0) {
-        insertIndex++;
-    }
-    Contact **newContacts = realloc(contacts, (count + 2) * sizeof(Contact*));
-    if (newContacts == NULL) {
-        printf("Memory reallocation error in insertContactAlphabetical\n");
-        return contacts;
-    }
-    for (int i = count; i > insertIndex; i--) {
-        newContacts[i] = newContacts[i - 1];
-    }
-    newContacts[insertIndex] = newContact;
-    newContacts[count + 1] = NULL;
-    printf("Contact was successfully added in alphabetical order\n");
-    return newContacts;
-}
-
-Contact **removeContactByIndex(Contact **contacts) {
-    if (contacts == NULL) {
-        printf("Error: value of addressBook received in removeContactByIndex was NULL\n");
-        return NULL;
-    }
-    int index;
-    printf("Removing a Contact by index\nEnter index to remove (0 based):\n");
-    if (scanf("%d", &index) != 1) {
-        printf("Error: Value of index supplied could not be read.\n");
-        while (getchar() != '\n');
-        return contacts;
-    }
-    while (getchar() != '\n');
-    int count = countContacts(contacts);
-    if (index < 0 || index >= count) {
-        printf("Error: Index out of range in removeContactByIndex\n");
-        return contacts;
-    }
-    Contact *toRemove = contacts[index];
-    free(toRemove->firstName);
-    free(toRemove->familyName);
-    free(toRemove->address);
-    free(toRemove);
-    for (int i = index; i < count; i++) {
-        contacts[i] = contacts[i + 1];
-    }
-    Contact **newContacts = realloc(contacts, (count) * sizeof(Contact*));
-    if (newContacts == NULL) {
-        printf("Error: Memory reallocation failed in removeContactByIndex\n");
-        return contacts;
-    }
-    printf("Contact removed successfully by removeContactByIndex\n");
-    return newContacts;
-}
-
-int removeContactByFullName(Contact ***contacts) {
-    if (*contacts == NULL) {
-        printf("Error: value of contacts received in removeContactByFullName was NULL\n");
-        return 0;
-    }
-    char firstName[256], familyName[256];
-    printf("Enter first name:\n");
-    if (fgets(firstName, sizeof(firstName), stdin) == NULL) {
-        return 0;
-    }
-    trimNewline(firstName);
-    printf("Enter family name:\n");
-    if (fgets(familyName, sizeof(familyName), stdin) == NULL) {
-        return 0;
-    }
-    trimNewline(familyName);
-    int count = countContacts(*contacts);
-    for (int i = 0; i < count; i++) {
-        Contact *c = (*contacts)[i];
-        if (strcmp(c->firstName, firstName) == 0 && strcmp(c->familyName, familyName) == 0) {
-            free(c->firstName);
-            free(c->familyName);
-            free(c->address);
-            free(c);
-            for (int j = i; j < count; j++) {
-                (*contacts)[j] = (*contacts)[j + 1];
-            }
-            Contact **newContacts = realloc(*contacts, (count) * sizeof(Contact*));
-            if (newContacts == NULL) {
-                printf("Error: Memory reallocation failed in removeContactByFullName\n");
-                return 1;
-            }
-            *contacts = newContacts;
-            printf("Contact '%s %s' removed successfully\n", firstName, familyName);
-            return 1;
-        }
-    }
-    printf("Contact '%s %s' not found\n", firstName, familyName);
-    return 2;
-}
-
-void listContacts(Contact **contacts) {
-    int count = countContacts(contacts);
-    if (count == 0) {
-        printf("No contacts available.\n");
+void freeAllContacts(Contact **contacts) 
+{
+    if(contacts == NULL) 
+    {
         return;
     }
-    for (int i = 0; i < count; i++) {
-        Contact *c = contacts[i];
-        printf("%d. %s %s\n", i + 1, c->firstName, c->familyName);
-        printf(" Phone: %lld\n", c->phoneNum);
-        printf(" Address: %s\n", c->address);
-        printf(" Age: %d\n\n", c->age);
-    }
-}
 
-void saveContactsToFile(Contact **contacts, char *filename) {
-    if (filename == NULL) {
-        printf("Error: filename formal parameter passed value NULL in saveContactsToFile\n");
-        return;
-    }
-    if (contacts == NULL) {
-        printf("Error: addressBook formal parameter passed value NULL in saveContactsToFile\n");
-        return;
-    }
-    FILE *fp = fopen(filename, "w");
-    if (fp == NULL) {
-        printf("Error: file not opened in saveContactsToFile\n");
-        return;
-    }
-    int count = countContacts(contacts);
-    for (int i = 0; i < count; i++) {
-        Contact *c = contacts[i];
-        fprintf(fp, "%s\n", c->firstName);
-        fprintf(fp, "%s\n", c->familyName);
-        fprintf(fp, "%s\n", c->address);
-        fprintf(fp, "%lld\n", c->phoneNum);
-        fprintf(fp, "%d\n", c->age);
-    }
-    fclose(fp);
-}
-
-void printContactsToFile(Contact **contacts, char *filename) {
-    if (filename == NULL) {
-        printf("Error: filename formal parameter passed value NULL in printContactsToFile\n");
-        return;
-    }
-    if (contacts == NULL) {
-        printf("Error: addressBook formal parameter passed value NULL in printContactsToFile\n");
-        return;
-    }
-    FILE *fp = fopen(filename, "w");
-    if (fp == NULL) {
-        printf("Error: file not opened in printContactsToFile\n");
-        return;
-    }
-    int count = countContacts(contacts);
-    fprintf(fp, "Address Book Report\n-------------------\n");
-    for (int i = 0; i < count; i++) {
-        Contact *c = contacts[i];
-        fprintf(fp, "%d. %s %s\n", i + 1, c->firstName, c->familyName);
-        fprintf(fp, " Phone: %lld\n", c->phoneNum);
-        fprintf(fp, " Address: %s\n", c->address);
-        fprintf(fp, " Age: %d\n\n", c->age);
-    }
-    fprintf(fp, "-------------------\nTotal Contacts: %d\n", count);
-    fclose(fp);
-}
-
-Contact **loadContactsFromFile(char *filename) {
-    FILE *fp = fopen(filename, "r");
-    if (fp == NULL) {
-        return NULL;
-    }
-    Contact **newContacts = NULL;
-    int capacity = 0;
-    int count = 0;
-    char firstName[256], familyName[256], address[256], phoneStr[256], ageStr[256];
-    while (fgets(firstName, sizeof(firstName), fp) != NULL) {
-        trimNewline(firstName);
-        if (fgets(familyName, sizeof(familyName), fp) == NULL) break;
-        trimNewline(familyName);
-        if (fgets(address, sizeof(address), fp) == NULL) break;
-        trimNewline(address);
-        if (fgets(phoneStr, sizeof(phoneStr), fp) == NULL) break;
-        trimNewline(phoneStr);
-        if (fgets(ageStr, sizeof(ageStr), fp) == NULL) break;
-        trimNewline(ageStr);
-        long long phoneNum = atoll(phoneStr);
-        int age = atoi(ageStr);
-        Contact *c = malloc(sizeof(Contact));
-        c->firstName = strdup(firstName);
-        c->familyName = strdup(familyName);
-        c->address = strdup(address);
-        c->phoneNum = phoneNum;
-        c->age = age;
-        if (count >= capacity) {
-            capacity = capacity == 0 ? 1 : capacity * 2;
-            newContacts = realloc(newContacts, (capacity + 1) * sizeof(Contact*));
-        }
-        newContacts[count++] = c;
-    }
-    if (count == 0) {
-        newContacts = realloc(newContacts, sizeof(Contact*));
-        newContacts[0] = NULL;
-    } else {
-        newContacts[count] = NULL;
-    }
-    fclose(fp);
-    return newContacts;
-}
-
-Contact **mergeContactsFromFile(Contact **contacts, char *filename) {
-    Contact **fileContacts = loadContactsFromFile(filename);
-    if (fileContacts == NULL) {
-        return contacts;
-    }
-    int fileCount = countContacts(fileContacts);
-    for (int i = 0; i < fileCount; i++) {
-        Contact *c = fileContacts[i];
-        int exists = 0;
-        for (int j = 0; contacts != NULL && j < countContacts(contacts); j++) {
-            if (strcmp(contacts[j]->firstName, c->firstName) == 0 && strcmp(contacts[j]->familyName, c->familyName) == 0) {
-                exists = 1;
-                break;
-            }
-        }
-        if (!exists) {
-            contacts = insertContactAlphabetical(contacts, c);
-        } else {
-            free(c->firstName);
-            free(c->familyName);
-            free(c->address);
-            free(c);
-        }
-    }
-    free(fileContacts);
-    return contacts;
-}
-
-Contact **appendContactsFromFile(Contact **contacts, char *filename) {
-    Contact **fileContacts = loadContactsFromFile(filename);
-    if (fileContacts == NULL) {
-        return contacts;
-    }
-    int fileCount = countContacts(fileContacts);
-    for (int i = 0; i < fileCount; i++) {
-        Contact *c = fileContacts[i];
-        int exists = 0;
-        for (int j = 0; contacts != NULL && j < countContacts(contacts); j++) {
-            if (strcmp(contacts[j]->firstName, c->firstName) == 0 && strcmp(contacts[j]->familyName, c->familyName) == 0) {
-                exists = 1;
-                break;
-            }
-        }
-        if (!exists) {
-            contacts = appendContact(contacts, c);
-        } else {
-            free(c->firstName);
-            free(c->familyName);
-            free(c->address);
-            free(c);
-        }
-    }
-    free(fileContacts);
-    return contacts;
-}
-
-Contact *editContact(Contact **contacts, int index) {
-    if (contacts == NULL || index < 0 || index >= countContacts(contacts)) {
-        return NULL;
-    }
-    Contact *c = contacts[index];
-    int choice;
-    do {
-        printf("1. Edit First Name\n2. Edit Last Name\n3. Edit Address\n4. Edit Phone Number\n5. Edit Age\n6. Cancel\n");
-        if (scanf("%d", &choice) != 1) {
-            while (getchar() != '\n');
-            continue;
-        }
-        while (getchar() != '\n');
-        char buffer[256];
-        switch (choice) {
-            case 1:
-                printf("Enter new first name:\n");
-                if (fgets(buffer, sizeof(buffer), stdin) == NULL) break;
-                trimNewline(buffer);
-                char *newFirstName = strdup(buffer);
-                if (newFirstName == NULL) {
-                    printf("Error: Memory allocation failed for first name\n");
-                    break;
-                }
-                free(c->firstName);
-                c->firstName = newFirstName;
-                break;
-            case 2:
-                printf("Enter new family name:\n");
-                if (fgets(buffer, sizeof(buffer), stdin) == NULL) break;
-                trimNewline(buffer);
-                char *newFamilyName = strdup(buffer);
-                if (newFamilyName == NULL) {
-                    printf("Error: Memory allocation failed for family name\n");
-                    break;
-                }
-                free(c->familyName);
-                c->familyName = newFamilyName;
-                break;
-            case 3:
-                printf("Enter new address:\n");
-                if (fgets(buffer, sizeof(buffer), stdin) == NULL) break;
-                trimNewline(buffer);
-                char *newAddress = strdup(buffer);
-                if (newAddress == NULL) {
-                    printf("Error: Memory allocation failed for address\n");
-                    break;
-                }
-                free(c->address);
-                c->address = newAddress;
-                break;
-            case 4: {
-                int attempts = 5;
-                long long phoneNum = 0;
-                while (attempts > 0) {
-                    printf("Enter new 10-digit phone number that must not start with 0:\n");
-                    if (fgets(buffer, sizeof(buffer), stdin) == NULL) break;
-                    trimNewline(buffer);
-                    size_t len = strlen(buffer);
-                    if (len != 10 || buffer[0] == '0') {
-                        printf("Error: Invalid phone number. Try again:\n");
-                        attempts--;
-                        continue;
-                    }
-                    int valid = 1;
-                    for (int i = 0; i < 10; i++) {
-                        if (!isdigit(buffer[i])) {
-                            valid = 0;
-                            break;
-                        }
-                    }
-                    if (!valid) {
-                        printf("Error: Invalid phone number. Try again:\n");
-                        attempts--;
-                        continue;
-                    }
-                    phoneNum = atoll(buffer);
-                    break;
-                }
-                if (attempts == 0) {
-                    printf("Error: Could not read a valid phone number\n");
-                } else {
-                    c->phoneNum = phoneNum;
-                }
-                break;
-            }
-            case 5: {
-                int attempts = 5;
-                int age = 0;
-                while (attempts > 0) {
-                    printf("Enter new age:\n");
-                    if (fgets(buffer, sizeof(buffer), stdin) == NULL) break;
-                    trimNewline(buffer);
-                    if (sscanf(buffer, "%d", &age) != 1) {
-                        printf("Error: Invalid age. Try again:\n");
-                        attempts--;
-                        continue;
-                    }
-                    if (age < 1 || age > 150) {
-                        printf("Error: Invalid age. Try again:\n");
-                        attempts--;
-                        continue;
-                    }
-                    break;
-                }
-                if (attempts == 0) {
-                    printf("Error: Could not read a valid age\n");
-                } else {
-                    c->age = age;
-                }
-                break;
-            }
-            case 6:
-                return c;
-            default:
-                printf("Invalid choice\n");
-                break;
-        }
-    } while (choice != 6);
-    return c;
-}
-
-void freeContacts(Contact **contacts) {
-    if (contacts == NULL) return;
-    for (int i = 0; contacts[i] != NULL; i++) {
+    for(int i = 0; contacts[i] != NULL; i++) 
+    {
         free(contacts[i]->firstName);
         free(contacts[i]->familyName);
         free(contacts[i]->address);
         free(contacts[i]);
     }
+    
     free(contacts);
 }
 
-int main() {
-    Contact **addressBook = NULL;
+Contact *readNewContact() 
+{
+    int ageTemp = 0;
+    int ageTries = 0;
+    long long phoneTemp = 0;
+    int phoneTries = 0;
+
+    Contact *newContact = (Contact *)malloc(sizeof(Contact));
+    if(!newContact) 
+    {
+        printf("Error: Memory allocation failed for Contact in readNewContact \n");
+        return NULL;
+    }
+
+    newContact->firstName = (char*)malloc(100 * sizeof(char));
+    if(!newContact->firstName) 
+    {
+        printf("Error: unable to allocate memory for the first name string\n");
+        free(newContact);
+        return NULL;
+    }
+    
+    newContact->familyName = (char*)malloc(100 * sizeof(char));
+    if(!newContact->familyName) 
+    {
+        printf("Error: unable to allocate memory for the family name string\n");
+        free(newContact->firstName);
+        free(newContact);
+        return NULL;
+    }
+    
+    newContact->address = (char*)malloc(200 * sizeof(char));
+    if(!newContact->address) 
+    {
+        printf("Error: unable to allocate memory for the address string\n");
+        free(newContact->familyName);
+        free(newContact->firstName);
+        free(newContact);
+        return NULL;
+    }
+
+    /*Read first name*/
+    printf("Enter the first name: ");
+    scanf("%99s", newContact->firstName);
+    while(getchar() != '\n');
+
+    /*Read family name*/
+    printf("Enter the family name: ");
+    scanf("%99s", newContact->familyName);
+    while(getchar() != '\n');
+
+    /*Read address*/
+    printf("Enter the address: ");
+    scanf("%199[^\n]", newContact->address);
+    while(getchar() != '\n');
+
+    /*Read phone number*/
+    while(1) 
+    {
+        printf("Enter 10-digit phone number that must not start with 0: ");
+        
+        if(scanf("%lld", &phoneTemp) != 1) 
+        {
+            printf("Error: Invalid phone number. Try again: ");
+            while(getchar() != '\n');
+            phoneTries++;
+        } 
+        
+        /*Phone number re-tries*/
+        else 
+        {
+            if(phoneTemp >= 1000000000LL && phoneTemp <= 9999999999LL) 
+            {
+                newContact->phoneNum = phoneTemp;
+                break;
+            } 
+            
+            else 
+            {
+                printf("Error: Invalid phone number. Try again: ");
+                phoneTries++;
+            }
+        }
+
+        if(phoneTries >= 5) 
+        {
+            printf("Error: Could not read a valid phone number\n");
+            newContact->phoneNum = 0;
+            break;
+        }
+    }
+
+    /*Read age*/
+    while(1) 
+    {
+        printf("Enter the age: ");
+        
+        if(scanf("%d", &ageTemp) != 1) 
+        {
+            printf("Error: Invalid age. Try again: ");
+            while(getchar() != '\n');
+            ageTries++;
+        } 
+        
+        /*Age re-tries*/
+        else 
+        {
+            if(ageTemp >= 1 && ageTemp <= 150) 
+            {
+                newContact->age = ageTemp;
+                break;
+            } 
+            
+            else 
+            {
+                printf("Error: Invalid age. Try again: ");
+                ageTries++;
+            }
+        }
+
+        if(ageTries >= 5) 
+        {
+            printf("Error: Could not read a valid age\n");
+            newContact->age = 0;
+            break;
+        }
+    }
+    return newContact;
+}
+
+Contact **appendContact(Contact **contacts, Contact *newContact)
+{
+    int count = countContacts(contacts);
+    int newSize = count + 2;
+    
+    if(newContact == NULL)
+    {
+        return contacts;
+    }
+
+    Contact **newList = realloc(contacts, newSize * sizeof(Contact *));
+    if(newList == NULL) 
+    {
+        printf("Error: Memory reallocation error in appendContact\n");
+        return contacts;
+    }
+
+    newList[count] = newContact;
+    newList[count + 1] = NULL;
+
+    printf("Contact appended successfully by appendContact \n");
+    return newList;
+}
+
+Contact **insertContactAlphabetical(Contact **contacts, Contact *newContact) 
+{
+    if(newContact == NULL) 
+    {
+        return contacts;
+    }
+    
+    int contactCount = countContacts(contacts);
+    int newSize = contactCount + 2;
+    int insertPosition = 0;
+
+    Contact **newList = realloc(contacts, newSize * sizeof(Contact *));
+    if(newList == NULL) 
+    {
+        printf("Error: Memory reallocation failed\n");
+        return contacts;
+    }
+
+    while(insertPosition < contactCount) 
+    {
+        Contact *current = newList[insertPosition];
+        
+        /*Comparing family names*/
+        int familyCompare = strcmp(newContact->familyName, current->familyName);
+        if(familyCompare < 0) 
+        {
+            break;
+        }
+
+        /*Comparing first names*/
+        if(familyCompare == 0) 
+        {
+            int firstCompare = strcmp(newContact->firstName, current->firstName);
+            if(firstCompare < 0) 
+            {
+                break;
+            }
+        }
+        
+        insertPosition++;
+    }
+
+    for(int i = contactCount; i > insertPosition; i--) 
+    {
+        newList[i] = newList[i - 1];
+    }
+
+    /*Adding new position*/
+    newList[insertPosition] = newContact;
+    newList[contactCount + 1] = NULL;
+
+    printf("Contact added in alphabetical order successfully.\n");
+    return newList;
+}
+
+Contact **removeContactByIndex(Contact **contacts) 
+{
+    int contactCount = countContacts(contacts);
+    int newSize = contactCount;
+    
+    if(contacts == NULL) 
+    {
+        printf("Error: value of addressBook received in removeContactByIndex was NULL\n");
+        return NULL;
+    }
+
+    int index;
+    printf("Removing a Contact by index\n\
+Enter index to remove (0 based): ");
+    
+    // Read index input
+    if(scanf("%d", &index) != 1) 
+    {
+        printf("Error: Value of index supplied could not be read.\n");
+        while(getchar() != '\n');
+        return contacts;
+    }
+    
+    if(index < 0 || index >= contactCount) 
+    {
+        printf("Error: Index out of range in removeContactByIndex\n");
+        return contacts;
+    }
+
+    Contact *oldContact = contacts[index];
+    free(oldContact->firstName);
+    free(oldContact->familyName);
+    free(oldContact->address);
+    free(oldContact);
+
+    for(int i = index; i < contactCount; i++)
+    {
+        contacts[i] = contacts[i + 1];
+    }
+    
+    /*Reallocate to smaller size*/
+    Contact **newList = realloc(contacts, newSize * sizeof(Contact *));
+    if(newList == NULL) 
+    {
+        printf("Error: Memory reallocation failed in removeContactByIndex\n");
+        return contacts;
+    }
+
+    printf("Contact removed successfully by removeContactByIndex\n");
+    return newList;
+}
+
+int removeContactByFullName(Contact ***contacts) 
+{
+    char firstName[100] = "";
+    char familyName[100] = "";
+    int count = countContacts(*contacts);
+    int foundIndex = -1;
+    
+    if(contacts == NULL) 
+    {
+        printf("Error: value of contacts received in removeContactByFullName was NULL\n");
+        return 0;
+    }
+
+    printf("Enter first name: ");
+    scanf("%99s", firstName);
+    printf("Enter family name: ");
+    scanf("%99s", familyName);
+
+    if(*contacts == NULL) 
+    {
+        printf("Contact '%s %s' not found\n", firstName, familyName);
+        return 2;
+    }
+
+    /*Search for matching contact*/
+    for(int i = 0; i < count; i++) 
+    {
+        Contact *current = (*contacts)[i];
+        if(strcmp(current->firstName, firstName) == 0 && strcmp(current->familyName, familyName) == 0) 
+        {
+            foundIndex = i;
+            break;
+        }
+    }
+
+    if(foundIndex == -1) 
+    {
+        printf("Contact '%s %s' not found\n", firstName, familyName);
+        return 2;
+    }
+
+    Contact *removed = (*contacts)[foundIndex];
+    free(removed->firstName);
+    free(removed->familyName);
+    free(removed->address);
+    free(removed);
+
+    for(int i = foundIndex; i < count; i++) 
+    {
+        (*contacts)[i] = (*contacts)[i + 1];
+    }
+
+    int newCount = count - 1;
+    Contact **newArray = realloc(*contacts, (newCount + 1) * sizeof(Contact *));
+
+    if(newArray) 
+    {
+        *contacts = newArray;
+        printf("Contact '%s %s' removed successfully\n", firstName, familyName);
+    } 
+    
+    else 
+    {
+        printf("Error: Memory reallocation failed in removeContactByFullName\n");
+    }
+
+    return 1;
+}
+
+Contact **editContact(Contact **contacts) 
+{
     int choice;
-    do {
-        printf("Address Book Menu\n1. Append Contact\n2. Insert Contact in Alphabetical Order\n3. Remove Contact by Index\n4. Remove Contact by Full Name\n5. Find and Edit Contact\n6. List Contacts\n7. Print Contacts to File with the format of an input file\n8. Print Contacts to File (Human Readable)\n9. Load Contacts from File Replacing Existing Contacts\n10. Append Contacts from File\n11. Merge Contacts from File\n12. Exit\nChoose an option:\n");
-        if (scanf("%d", &choice) != 1) {
-            while (getchar() != '\n');
-            continue;
+    int contactIndex = 0;
+    int count = countContacts(contacts);
+
+    if (count == 0) 
+    {
+        printf("Error: No contacts available to edit.\n");
+        return 0;
+    }
+
+    printf("Enter index of contact to edit (0-%d): ", count-1);
+    if (scanf("%d", &contactIndex) != 1 || contactIndex < 0 || contactIndex >= count) 
+    {
+        printf("Error: Invalid index\n");
+        return 0;
+    }
+
+    while(getchar() != '\n');
+
+    Contact *contact = contacts[contactIndex];
+
+    while(1) 
+    {
+        printf("Editing Contact: %s %s\n", contact->firstName, contact->familyName);
+        printf("1. Edit First Name\n\
+2. Edit Family Name\n\
+3. Edit Address\n\
+4. Edit Phone Number\n\
+5. Edit Age\n\
+6. Cancel\n\
+Choose an option: ");
+
+        scanf("%d", &choice);
+        if(choice >= 1 && choice <= 6)
+		{
+			if(1 == choice) /*First name*/
+			{
+                char newName[100];
+                
+                printf("Enter new first name: ");
+                scanf("%99s", newName);
+
+
+                char *newStr = strdup(newName);
+                if(!newStr) 
+                {
+                    printf("Error: Memory allocation error for string in editContact\n");
+                    return contacts;
+                }
+
+                free(contact->firstName);
+                contact->firstName = newStr;
+                printf("First name updated.\n");
+
+                return contacts;
+			}
+
+			else if(2 == choice) /*Family name*/
+			{
+                char newName[100];
+                
+                printf("Enter new family name: ");
+                scanf("%99s", newName);
+
+                char *newStr = strdup(newName);
+                if(!newStr) 
+                {
+                    printf("Error: Memory allocation error for string in editContact\n");
+                    return contacts;
+                }
+
+                free(contact->familyName);
+                contact->familyName = newStr;
+                printf("Family name updated.\n");
+
+                return contacts;
+			}
+
+			else if(3 == choice) /*Address*/
+			{
+                char newAddress[200];
+                
+                printf("Enter new address: ");
+                scanf(" %199[^\n]", newAddress);
+
+                char *newStr = strdup(newAddress);
+                if(!newStr) 
+                {
+                    printf("Error: Memory allocation error for string in editContact\n");
+                    return contacts;
+                }
+
+                free(contact->address);
+                contact->address = newStr;
+                printf("Address updated.\n");
+
+                return contacts;
+			}
+
+			else if(4 == choice) /*Phone number*/
+			{
+                long long newPhone = 0;
+                int tries = 0;
+                
+                while(1) 
+                {
+                    printf("Enter new phone number: Enter 10-digit phone number that must not start with 0: ");
+                    if(scanf("%lld", &newPhone) != 1) 
+                    {
+                        printf("Error: Invalid phone number. Try again: ");
+                        tries++;
+                    } 
+
+                    else if(newPhone < 1000000000LL || newPhone > 9999999999LL) 
+                    {
+                        printf("Error: Invalid phone number. Try again: ");
+                        tries++;
+                    } 
+
+                    else 
+                    {
+                        contact->phoneNum = newPhone;
+                        printf("Phone number updated.\n");
+                        return contacts;
+                    }
+                    
+                    if (tries >= 5) 
+                    {
+                        printf("Error: Could not read a valid phone number. Keeping original.\n");
+                        return contacts;
+                    }
+                    while(getchar() != '\n');
+                }
+			}
+
+			else if(5 == choice) /*Age*/
+			{
+                int newAge;
+                int tries = 0;
+
+                while(1) 
+                {
+                    printf("Enter new age (0-150): ");
+                    if(scanf("%d", &newAge) != 1) 
+                    {
+                        printf("Error: Invalid age. Try again: ");
+                        tries++;
+                    } 
+
+                    else if(newAge < 0 || newAge > 150) 
+                    {
+                        printf("Error: Invalid age. Try again: ");
+                        tries++;
+                    } 
+
+                    else 
+                    {
+                        contact->age = newAge;
+                        printf("Age updated.\n");
+                        return contacts;
+                    }
+                    
+                    if (tries >= 5) 
+                    {
+                        printf("Error: Could not read a valid age. Keeping original.\n");
+                        return contacts;
+                    }
+                    while(getchar() != '\n');
+                }
+			}
+
+			else if(6 == choice) /*Cancel*/
+			{
+                printf("Edit cancelled.\n");
+                return contacts;
+			}
+ 
+        } 
+
+        else
+        {
+            printf("Error: option not available. Try again: ");
+        }  
+    }
+}
+
+void listContacts(Contact **contacts) 
+{
+    int count = countContacts(contacts);
+    
+    if(count == 0) 
+    {
+        printf("Error: No contacts available.\n");
+        return;
+    }
+
+    printf("\nContacts List:\n");
+    for(int i = 0; i < count; i++) 
+    {
+        Contact *current = contacts[i];
+        printf("%2d.    %s %s\n", i + 1, current->firstName, current->familyName);
+        printf("       Phone: %-15lld\n", current->phoneNum);
+        printf("       Address: %-30s\n", current->address);
+        printf("       Age: %-3d\n", current->age);
+    }
+}
+
+void saveContactsToFile(Contact **contacts, char *filename) 
+{
+
+    if(filename == NULL) 
+    {
+        printf("Error: filename formal parameter passed value NULL in saveContactsToFile");
+        return;
+    }
+
+    if(contacts == NULL) 
+    {
+        printf("Error: contacts formal parameter passed value NULL in saveContactsToFile");
+        return;
+    }
+
+    FILE *file = fopen(filename, "w");
+    if(file == NULL) 
+    {
+        printf("Error: file not opened in saveContactsToFile");
+        return;
+    }
+
+    int count = countContacts(contacts);
+    
+    fprintf(file, "%d\n", count);
+
+    for(int i = 0; i < count; i++)
+    {
+        Contact *current = contacts[i];
+        fprintf(file, "%s\n", current->firstName);
+        fprintf(file, "%s\n", current->familyName);
+        fprintf(file, "%s\n", current->address);
+        fprintf(file, "%lld\n", current->phoneNum);
+        fprintf(file, "%d\n", current->age);
+    }
+
+    fclose(file);
+}
+
+void printContactsToFile(Contact **contacts, char *filename)
+{
+    int count = countContacts(contacts);
+    
+    if(filename == NULL) 
+    {
+        printf("Error: filename formal parameter passed value NULL in printContactsToFile");
+        return;
+    }
+
+    if(contacts == NULL) 
+    {
+        printf("Error: contacts formal parameter passed value NULL in printContactsToFile");
+        return;
+    }
+
+    FILE *file = fopen(filename, "w");
+    if(file == NULL) 
+    {
+        printf("Error: file not opened in printContactsToFile");
+        return;
+    }
+
+    fprintf(file, "Address Book Report\n");
+    fprintf(file, "-------------------\n");
+
+    for (int i = 0; i < count; i++) 
+    {
+        Contact *current = contacts[i];
+        fprintf(file, "%d.   %s %s\n", i + 1, current->firstName, current->familyName);
+        fprintf(file, "      Phone: %lld\n", current->phoneNum);
+        fprintf(file, "      Address: %s\n", current->address);
+        fprintf(file, "      Age: %d\n", current->age);
+    }
+
+    fprintf(file, "-------------------\n");
+    fprintf(file, "Total Contacts: %d", count);
+
+    fclose(file);
+}
+
+void freeFileContacts(Contact **contacts, FILE *file) 
+{
+    for (int j = 0; contacts[j] != NULL; j++)
+    {
+        free(contacts[j]->firstName);
+        free(contacts[j]->familyName);
+        free(contacts[j]->address);
+        free(contacts[j]);
+    }
+    free(contacts);
+    fclose(file);
+}
+
+Contact **loadContactsFromFile(Contact **addressBook, char *filename)
+{
+    int contactCount = 0;
+    
+    if(filename == NULL) 
+    {
+        printf("Error: filename formal parameter passed value NULL in loadContactsFromFile\n");
+        return NULL;
+    }
+
+    FILE *file = fopen(filename, "r");
+    if(!file) 
+    {
+        printf("Error: File to load not found\n");
+        return NULL;
+    }
+
+    if(fscanf(file, "%d", &contactCount) != 1) 
+    {
+        printf("Error: Memory allocation error, addressBook in loadContactsFromFile\n");
+        fclose(file);
+        return NULL;
+    }
+    while(fgetc(file) != '\n' && !feof(file));
+
+    freeAllContacts(addressBook);
+    addressBook = NULL;
+
+    Contact **newBook = malloc((contactCount + 1) * sizeof(Contact *));
+    if(!newBook) 
+    {
+        printf("Error: Memory allocation error, addressBook in loadContactsFromFile\n");
+        fclose(file);
+        return NULL;
+    }
+    newBook[contactCount] = NULL;
+
+    for(int i = 0; i < contactCount; i++) 
+    {
+        char firstName[100] = "";
+        char familyName[100] = "";
+        char address[200] = "";
+        long long phone = 0;
+        int age = 0;
+
+        newBook[i] = malloc(sizeof(Contact));
+        if(newBook[i] == NULL) 
+        {
+            printf("Error: Memory allocation error, Contact %d in loadContactsFromFile\n", i);
+            freeFileContacts(newBook, file);
+            return NULL;
         }
-        while (getchar() != '\n');
-        switch (choice) {
-            case 1: {
-                Contact *newContact = readNewContact();
-                if (newContact != NULL) {
-                    addressBook = appendContact(addressBook, newContact);
-                }
-                break;
-            }
-            case 2: {
-                Contact *newContact = readNewContact();
-                if (newContact != NULL) {
-                    addressBook = insertContactAlphabetical(addressBook, newContact);
-                }
-                break;
-            }
-            case 3:
-                addressBook = removeContactByIndex(addressBook);
-                break;
-            case 4:
-                removeContactByFullName(&addressBook);
-                break;
-            case 5: {
-                int index;
-                printf("Enter index to edit:\n");
-                if (scanf("%d", &index) != 1) {
-                    while (getchar() != '\n');
-                    break;
-                }
-                while (getchar() != '\n');
-                Contact *edited = editContact(addressBook, index - 1);
-                if (edited == NULL) {
-                    printf("Invalid index\n");
-                }
-                break;
-            }
-            case 6:
-                listContacts(addressBook);
-                break;
-            case 7: {
-                char filename[256];
-                printf("Enter filename:\n");
-                if (fgets(filename, sizeof(filename), stdin) == NULL) break;
-                trimNewline(filename);
-                saveContactsToFile(addressBook, filename);
-                break;
-            }
-            case 8: {
-                char filename[256];
-                printf("Enter filename:\n");
-                if (fgets(filename, sizeof(filename), stdin) == NULL) break;
-                trimNewline(filename);
-                printContactsToFile(addressBook, filename);
-                break;
-            }
-            case 9: {
-                char filename[256];
-                printf("Enter filename:\n");
-                if (fgets(filename, sizeof(filename), stdin) == NULL) break;
-                trimNewline(filename);
-                Contact **newContacts = loadContactsFromFile(filename);
-                if (newContacts != NULL) {
-                    freeContacts(addressBook);
-                    addressBook = newContacts;
-                }
-                break;
-            }
-            case 10: {
-                char filename[256];
-                printf("Enter filename:\n");
-                if (fgets(filename, sizeof(filename), stdin) == NULL) break;
-                trimNewline(filename);
-                addressBook = appendContactsFromFile(addressBook, filename);
-                break;
-            }
-            case 11: {
-                char filename[256];
-                printf("Enter filename:\n");
-                if (fgets(filename, sizeof(filename), stdin) == NULL) break;
-                trimNewline(filename);
-                addressBook = mergeContactsFromFile(addressBook, filename);
-                break;
-            }
-            case 12:
-                freeContacts(addressBook);
-                printf("Exiting...\n");
-                break;
-            default:
-                printf("Invalid choice\n");
-                break;
+
+        /*Read first name*/
+        if (!fgets(firstName, sizeof(firstName), file))
+        {
+            fprintf(stderr, "Error: Memory allocation error, Contact %d in loadContactsFromFile\n", i);
+            free(newBook[i]);
+            freeFileContacts(newBook, file);
+            return NULL;
         }
-    } while (choice != 12);
-    return 0;
+
+        firstName[strcspn(firstName, "\n")] = '\0';
+        newBook[i]->firstName = strdup(firstName);
+
+        if (!newBook[i]->firstName)
+        {
+            printf("Error: Memory allocation error, Contact %d in loadContactsFromFile\n", i);
+            free(newBook[i]);
+            freeFileContacts(newBook, file);
+            return NULL;
+        }
+
+        /*Read family name*/
+        if(!fgets(familyName, sizeof(familyName), file)) 
+        {
+            printf("Error: Memory allocation error, Contact %d in loadContactsFromFile\n", i);
+            free(newBook[i]->firstName);
+            free(newBook[i]);
+            freeFileContacts(newBook, file);
+            return NULL;
+        }
+
+        familyName[strcspn(familyName, "\n")] = '\0';
+        newBook[i]->familyName = strdup(familyName);
+
+        if(newBook[i]->familyName == NULL) 
+        {
+            printf("Error: Memory allocation error, memory for string in Contact %d not allocated\n", i);
+            free(newBook[i]->firstName);
+            free(newBook[i]);
+            freeFileContacts(newBook, file);
+            return NULL;
+        }
+
+        /*Read address*/
+        if(!fgets(address, sizeof(address), file) == NULL) 
+        {
+            printf("Error: Memory allocation error, Contact %d in loadContactsFromFile\n", i);
+            free(newBook[i]->firstName);
+            free(newBook[i]->familyName);
+            free(newBook[i]);
+            freeFileContacts(newBook, file);
+            return NULL;
+        }
+
+        address[strcspn(address, "\n")] = '\0';
+        newBook[i]->address = strdup(address);
+
+        if(newBook[i]->address == NULL) 
+        {
+            printf("Error: Memory allocation error, memory for string in Contact %d not allocated\n", i);
+            free(newBook[i]->firstName);
+            free(newBook[i]->familyName);
+            free(newBook[i]);
+            freeFileContacts(newBook, file);
+            return NULL;
+        }
+
+        /*Read phone number*/
+        if(fscanf(file, "%lld", &phone) != 1) 
+        {
+            printf("Error: Invalid phone number.\n");
+            phone = 0;
+        }
+
+        newBook[i]->phoneNum = phone;
+        while(fgetc(file) != '\n' && !feof(file));
+
+        /*Read age*/
+        if(fscanf(file, "%d", &age) != 1) 
+        {
+            printf("Error: Invalid age.\n");
+            age = 0;
+        }
+
+        newBook[i]->age = age;
+        while(fgetc(file) != '\n' && !feof(file));
+    }
+
+    fclose(file);
+    printf("Contacts loaded from file: %s\n", filename);
+    return newBook;
+}
+
+Contact **appendContactsFromFile(Contact **contacts, char *filename) 
+{
+    int fileContactCount = 0;
+    
+    if(filename == NULL) 
+    {
+        printf("Error: filename formal parameter passed value NULL\n");
+        return contacts;
+    }
+
+    FILE *file = fopen(filename, "r");
+    if(!file) 
+    {
+        printf("Error: file not opened in appendContactsFromFile\n");
+        return NULL;
+    }
+
+    if(fscanf(file, "%d", &fileContactCount) != 1) 
+    {
+        fclose(file);
+        return contacts;
+    }
+    while(fgetc(file) != '\n' && !feof(file));
+
+    for(int i = 0; i < fileContactCount; i++) 
+    {
+        char firstName[100];
+        char familyName[100];
+        char address[200];
+        long long phone = 0;
+        int age = 0;
+        int exists = 0;
+        int contactCount = countContacts(contacts);
+
+        /*Read first name*/
+        if(!fgets(firstName, sizeof(firstName), file) )
+        {
+            break;
+        }
+        firstName[strcspn(firstName, "\n")] = '\0';
+        
+        /*Read family name*/
+        if(!fgets(familyName, sizeof(familyName), file))
+        {
+            break;
+        }
+        familyName[strcspn(familyName, "\n")] = '\0';
+        
+        /*Read address*/
+        if(!fgets(address, sizeof(address), file))
+        {
+            break;
+        }
+        address[strcspn(address, "\n")] = '\0';
+
+        /*Read phone number*/
+        if(fscanf(file, "%lld", &phone) != 1) 
+        {
+            phone = 0;
+        }
+         while(fgetc(file) != '\n' && !feof(file));
+        
+        /*Read age*/
+        if(fscanf(file, "%d", &age) != 1)
+        {
+            age = 0;
+        }
+         while(fgetc(file) != '\n' && !feof(file));
+
+        for(int j = 0; j < contactCount; j++) 
+        {
+            if(strcmp(contacts[j]->firstName, firstName) == 0 &&strcmp(contacts[j]->familyName, familyName) == 0) 
+            {
+                exists = 1;
+                break;
+            }
+        }
+
+        if(!exists) 
+        {
+            Contact *newContact = malloc(sizeof(Contact));
+            if(!newContact) 
+            {
+                fprintf(stderr, "Error: Memory allocation failed for Contact\n");
+                fclose(file);
+                return contacts;
+            }
+
+            newContact->firstName = strdup(firstName);
+            newContact->familyName = strdup(familyName);
+            newContact->address = strdup(address);
+            newContact->phoneNum = phone;
+            newContact->age = age;
+            
+            if(!newContact->firstName || !newContact->familyName || !newContact->address) 
+            {
+                free(newContact->firstName);
+                free(newContact->familyName);
+                free(newContact->address);
+                free(newContact);
+                fprintf(stderr, "Error: Memory allocation failed for strings\n");
+                fclose(file);
+                return contacts;
+            }
+
+            contacts = appendContact(contacts, newContact);
+            if (!contacts)
+            {
+                fprintf(stderr, "Error appending contact\n");
+                free(newContact->firstName);
+                free(newContact->familyName);
+                free(newContact->address);
+                free(newContact);
+                fclose(file);
+                return NULL;
+            }
+        }
+    }
+
+    fclose(file);
+    printf("Appended contacts from %s\n", filename);
+    return contacts;
+}
+
+Contact **mergeContactsFromFile(Contact **contacts, char *filename)
+{
+    int contactCount = 0;
+    
+    if(!filename) 
+    {
+        printf("Error: filename is NULL in mergeContactsFromFile\n");
+        return contacts;
+    }
+
+    FILE *file = fopen(filename, "r");
+    if(!file) 
+    {
+        printf("Error: file not opened in mergeContactsFromFile\n");
+        return contacts;
+    }
+
+    if(fscanf(file, "%d", &fileCount) != 1) 
+    {
+        fclose(file);
+        return contacts;
+    }
+
+    while(fgetc(file) != '\n' && !feof(file));
+
+    for(int i = 0; i < fileCount; i++) 
+    {
+        char firstName[100] = "";
+        char familyName[100] = "";
+        char address[200]= "";
+        long long phone = 0;
+        int age = 0;
+        int exists = 0;
+        contactCount = countContacts(contacts);
+        
+        if(!fgets(firstName, sizeof(firstName), file)) 
+        {
+            break;
+        }
+        firstName[strcspn(firstName, "\n")] = 0;
+        
+        if(!fgets(familyName, sizeof(familyName), file))
+        {
+            break;
+        }
+        familyName[strcspn(familyName, "\n")] = 0;
+        
+        if(!fgets(address, sizeof(address), file))
+        {
+            break;
+        }
+        address[strcspn(address, "\n")] = 0;
+        
+        if(fscanf(file, "%lld", &phone) != 1) 
+        {
+            phone = 0;
+        }
+        while(fgetc(file) != '\n' && !feof(file));
+        
+        if(fscanf(file, "%d", &age) != 1) 
+        {
+            age = 0;
+        }
+        while(fgetc(file) != '\n' && !feof(file));
+
+        for(int j = 0; j < contactCount; j++) 
+        {
+            if(strcmp(contacts[j]->firstName, firstName) == 0 && strcmp(contacts[j]->familyName, familyName) == 0) 
+            {
+                exists = 1;
+                break;
+            }
+        }
+
+        if(!exists) 
+        {
+            Contact *newContact = malloc(sizeof(Contact));
+            if(!newContact) 
+            {
+                fclose(file);
+                return contacts;
+            }
+
+            newContact->firstName = strdup(firstName);
+            newContact->familyName = strdup(familyName);
+            newContact->address = strdup(address);
+            newContact->phoneNum = phone;
+            newContact->age = age;
+
+            if (!newContact->firstName || !newContact->familyName || !newContact->address) 
+            {
+                free(newContact->firstName);
+                free(newContact->familyName);
+                free(newContact->address);
+                free(newContact);
+                fclose(file);
+                return contacts;
+            }
+
+            contacts = appendContact(contacts, newContact);
+            if (!contacts)
+            {
+                fprintf(stderr, "Error appending contact\n");
+                free(newContact->firstName);
+                free(newContact->familyName);
+                free(newContact->address);
+                free(newContact);
+                fclose(file);
+                return NULL;
+            }
+        }
+    }
+
+    fclose(file);
+    printf("Appended contacts from %s\n", filename);
+    return contacts;
 }
