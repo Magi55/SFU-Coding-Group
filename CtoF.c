@@ -18,7 +18,9 @@ int main(void)
    float fahTemp = 0.0; //Fahrenheit temperature
     
    //Convert C to F
-   fahTemp = celTemp * 9/5 + 32;
+   //fahTemp = celTemp * 9/5 + 32;
+   //fahTemp = 32 + 9.0/5 * celTemp;
+   fahTemp = 32 + (float) 9/5 * celTemp;
     
    //Print results
    printf(" %.1f Celcius => %.1f Fahrenheit\n", celTemp, fahTemp);
