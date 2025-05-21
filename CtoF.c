@@ -14,16 +14,16 @@
 int main(void)
 {
 	//Get a C temparature
-    float celTemp = 2.0; //Celcius temperature
-    float farTemp = 0.0; //Fahrenheit temperature
+   float celTemp = 2.0; //Celcius temperature
+   float fahTemp = 0.0; //Fahrenheit temperature
     
-    //Convert C to F
-    farTemp = celTemp * 9/5 + 32;
+   //Convert C to F
+   fahTemp = celTemp * 9/5 + 32;
     
-    //Print results
-    printf(" %.1f Celcius => %.1f Fahrenheit\n", celTemp, farTemp);
+   //Print results
+   printf(" %.1f Celcius => %.1f Fahrenheit\n", celTemp, fahTemp);
     
-    return 0;
+   return 0;
     
 }
     
