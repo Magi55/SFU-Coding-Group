@@ -16,6 +16,12 @@ int main(void)
 	//Get a C temparature
    float celTemp = 2.0; //Celcius temperature
    float fahTemp = 0.0; //Fahrenheit temperature
+   
+   //Ask the user for a Celsius T (prompt)
+   printf("Please, enter a temperature in Celsius: ");
+   
+   //Read the user input
+   scanf("%f", &celTemp);
     
    //Convert C to F
    //fahTemp = celTemp * 9/5 + 32;
